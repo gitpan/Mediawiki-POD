@@ -1,0 +1,122 @@
+#!/usr/bin/perl -Tw
+
+BEGIN
+  {
+  $|++;				# output buffer off
+  unshift @INC, 'lib';		# use local modules first
+  unshift @INC, 'pod/lib'	# use local modules first
+  }
+
+$VERSION = '0.01';
+
+use strict;
+# use warnings;			# be lean
+use Pod::Simple::HTML;
+
+use Encode qw/decode encode/;
+
+# wrong number of options?
+if (@ARGV < 1 || @ARGV > 2)
+  {
+  require Pod::Usage;		# do not load this unless nec.
+  Pod::Usage::pod2usage(-2);	# print help and exit
+  }
+
+my $timeout = 10;
+
+eval
+  {
+  local $SIG{ALRM} = sub { die "podcnv took more than $timeout seconds to parse POD\n" };
+  alarm $timeout;
+
+  my $parser = Pod::Simple::HTML->new();
+
+  my ($html, $css);
+
+  $parser->output_string( \$html );
+
+  binmode STDOUT, ':utf8' or die ("binmode STDOUT, ':utf8' failed: $!");
+
+  my ($txt, $encoding) = @ARGV;
+  $txt = decode ($encoding || 'utf8', $txt);
+
+  $parser->parse_string_document( $txt );
+
+#  my $css = "<style type='text/css'><!--\n" . $graph->css() . "--></style>";
+
+  #$html =~ s/\n+\z//;			# remove trailing "\n"
+  #$html =~ s/^\n+//;				# remove leading "\n"
+
+  # mediawiki doesn't like leading spaces and empty lines in the CSS
+#  $css =~ s/(^|\n)\s+/$1/g;			# spaces at front
+
+  # it also seems not to like to longs stretches of CSS :-/
+#  $css =~ s/\n+//g;				# remove all newlines
+  $html =~ s/\n+//g;				# remove all newlines
+
+  print $css . $html;
+
+  # disable alarm
+  alarm 0;
+  };
+
+if ($@) 
+  {
+  # propagate unexpected errors
+  my $error = $@;
+
+  $error =~ s/\s*##ERROR(\d+)##\s*//; my $code = $1 || 2;
+  $error .= "." unless $error =~ /\.\z/;
+  $error =~ s/\.\s*\z/. /;
+
+  $error =~ s/&/&amp;/g;
+  $error =~ s/</&lt;/g;
+  $error =~ s/>/&gt;/g;
+
+  $error .= 'See the <a alt="online manual" title="online manual" href="'
+    . "error_page\#$code" .'">manual</a> for help.';
+  print "<strong class='error'>podcnv error:</strong> $error\n";
+  }
+
+1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+podcnv - convert POD to HTML
+
+=head1 SYNOPSIS
+
+	perl -T podcnv POD [encoding]
+
+Examples:
+
+	perl -T podcnv '=head1 NAME' 'utf-8'
+
+=head1 DESCRIPTION
+
+Turns a given POD (Plain Old Documentation) into HTML code.
+
+=head1 VERSIONS
+
+Please see the CHANGES file for a complete version history.
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms of the GPL.
+
+See the LICENSE file for information.
+
+=head1 AUTHOR
+
+(c) by Tels bloodgate.com 2007
+
+=head1 SEE ALSO
+
+L<http://bloodgate.com/wiki/>.
+
+=cut

@@ -1,0 +1,46 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.54.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 30ceba8f4e2d6b3906dbd719d85b687c9290e690 .htaccess
+SHA1 81fa899dc8f88514650aea4b8a1766e36cfd2256 CHANGES
+SHA1 02154445bc9831e791c35050f1a018ed99030016 LICENSE
+SHA1 0ea6d748c4b915cfe994376cb4050d14135765c2 MANIFEST
+SHA1 d1f21d136935a6cb5d0acdca4595bd30f3464f99 MANIFEST.SKIP
+SHA1 46bf3bd9aadbee76d1b850ec6a437110a62eb8bf META.yml
+SHA1 d5e4b884ab1ef67a53f58fa19b3f3460cdb1a685 Makefile.PL
+SHA1 1f108c16f916350dd3d65a15ea74b5a993593fb1 README
+SHA1 69db3307b800775d2d7244b788bfa4d29eed12c5 extensions/POD.php
+SHA1 b7c014d42a621c6cb85e26263c1a6b03fc8bbf3b extensions/podcnv
+SHA1 9b2f9d83bcf77860f53a0c07c90a4a59ad9f5df1 inc/Module/Install.pm
+SHA1 abe32855d75ab13747cf65765af9947b7a8c3057 inc/Module/Install/Base.pm
+SHA1 95b81d1e91bd634467bf633571eff4420e9c04eb inc/Module/Install/Can.pm
+SHA1 1fe98c63cf9d7271c8cb4183ba230f152df69e26 inc/Module/Install/Fetch.pm
+SHA1 2249171a2b72cd73ff2c0a06597d29f86e5df456 inc/Module/Install/Makefile.pm
+SHA1 381bb98ea3877bba49ae85e7a7ea130645fd3dbf inc/Module/Install/Metadata.pm
+SHA1 0c2118868ef82ac517eb6d9c3bd93e6eb9bbf83e inc/Module/Install/Win32.pm
+SHA1 e827d6d43771032fa3df35c0ad5e5698d0e54cda inc/Module/Install/WriteAll.pm
+SHA1 3bf275bef7866b7b9fd5438df8121ad1985cd6a1 t/00_basic.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iQEVAwUBReiTsHcLPEOTuEwVAQIMQgf+KVhUjJsucb+DiYfMouGRSVsxCMS6Gvgn
+Ms/KyEWAdNzXbaT3uYjtSWeUP12rfFklpv+8gre+haG9YQJqb3rqEz09S2KT8UQg
+g+GQvzOQa44/8t1dpcA50lEGI/JAdwndgaBd71xfWf/bYPI1v59pg7KIIkV0njhP
+Jc/3LsZSzhIN8+yA8E7Rd+JKyUX+TaYCpFQTOFJKmVYdIcp50JvbOmlT+LHzn+ty
+VpCxmlD1nZVLJ7LU6iEXYhCfG2OUq/NFcRvCg4tOZSEWAHsmWKFWL6ATNq589Cva
+TE1kVmNARDLu68cqiGg3qjO71epA7i2ml2v0OiU7OReG8mRu8FY6OA==
+=7nXV
+-----END PGP SIGNATURE-----
