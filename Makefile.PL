@@ -10,7 +10,7 @@ use inc::Module::Install;
 name		'mediawiki-pod';
 
 # Get most of the details from the primary module
-version		0.01;
+version		0.02;
 abstract	'Convert POD to HTML inside Mediawiki';
 
 requires	'Scalar::Util'	=> 1.13;

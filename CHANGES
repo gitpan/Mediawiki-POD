@@ -1,4 +1,9 @@
 
+2007-03-03 v0.02 Tels 1 tests
+  * replace newlines by spaces, otherwise sentences are stuck together
+  * remove unwanted HTML (like the <head> section, <body>, comments etc.)
+  * fix the warning about undefined variable
+
 2007-03-02 v0.01 Tels 1 tests
   * first version
 

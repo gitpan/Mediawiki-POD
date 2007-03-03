@@ -4,7 +4,7 @@
 # (c) by Tels http://bloodgate.com 2007
 
 # Takes text between <pod> </pod> tags, and runs it through the
-# external script "pod2html", which generates an HTML from it.
+# external script "podcnv", which generates an HTML from it.
 
 $wgExtensionFunctions[] = "wfPODExtension";
  
@@ -22,8 +22,8 @@ function wfPODExtension() {
 $wgExtensionCredits['parserhook'][] = array(
 	'name' => 'POD extension',
 	'author' => 'Tels',
-	'url' => 'http://wwww.bloodgate.com/perl/',
-	'version' => 'v0.01',
+	'url' => 'http://wwww.bloodgate.com/wiki/',
+	'version' => 'v0.02',
 );
  
 # The callback function for converting the input text to HTML output

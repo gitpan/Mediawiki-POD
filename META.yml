@@ -15,4 +15,4 @@ requires:
   Pod::Simple: 3.04
   Scalar::Util: 1.13
   perl: 5.8.1
-version: 0.01
+version: 0.02

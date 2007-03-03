@@ -2,12 +2,11 @@
 
 BEGIN
   {
-  $|++;				# output buffer off
-  unshift @INC, 'lib';		# use local modules first
-  unshift @INC, 'pod/lib'	# use local modules first
+  $|++;						# output buffer off
+  unshift @INC, 'lib', 'extensions/lib';	# use local modules first
   }
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use strict;
 # use warnings;			# be lean
@@ -42,19 +41,20 @@ eval
 
   $parser->parse_string_document( $txt );
 
-#  my $css = "<style type='text/css'><!--\n" . $graph->css() . "--></style>";
+  # remove the unwanted HTML sections
+  $html =~ s/<head>(.|\n)*<\/head>//;
+  $html =~ s/<!--.*?-->//g;
 
-  #$html =~ s/\n+\z//;			# remove trailing "\n"
-  #$html =~ s/^\n+//;				# remove leading "\n"
+  $html =~ s/<\/?(html|body).*?>//g;
 
-  # mediawiki doesn't like leading spaces and empty lines in the CSS
-#  $css =~ s/(^|\n)\s+/$1/g;			# spaces at front
+  # clean up some crazy tags
+  # converting "<code lang='und' xml:lang='und'>" to "<code>
+  $html =~ s/<(pre|code|p)\s.*?>/<$1>/g;
 
-  # it also seems not to like to longs stretches of CSS :-/
-#  $css =~ s/\n+//g;				# remove all newlines
-  $html =~ s/\n+//g;				# remove all newlines
+  # remove all new lines and tabs
+  $html =~ s/[\r\n\t]/ /g;
 
-  print $css . $html;
+  print $html;
 
   # disable alarm
   alarm 0;
@@ -90,11 +90,11 @@ podcnv - convert POD to HTML
 
 =head1 SYNOPSIS
 
-	perl -T podcnv POD [encoding]
+        perl -T podcnv POD [encoding]
 
 Examples:
 
-	perl -T podcnv '=head1 NAME' 'utf-8'
+        perl -T podcnv '=head1 NAME' 'utf-8'
 
 =head1 DESCRIPTION
 

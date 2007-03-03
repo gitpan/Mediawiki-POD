@@ -102,7 +102,7 @@ inside a directory called C<lib/> in the C<extensions> directory:
 			\ - extensions		etc
 				\ - lib		<-- here
 
-Untar Pod::Simple into this directory.
+Untar Pod::Simple and the other modules you need into this directory.
 
 =head2 Run the testsuite
 
