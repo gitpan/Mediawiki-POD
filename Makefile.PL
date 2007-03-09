@@ -7,24 +7,22 @@ use strict;
 use inc::Module::Install;
 
 # The name of your distribution
-name		'mediawiki-pod';
+name		'Mediawiki-POD';
 
 # Get most of the details from the primary module
-version		0.02;
+all_from	'lib/Mediawiki/POD.pm';
 abstract	'Convert POD to HTML inside Mediawiki';
 
-requires	'Scalar::Util'	=> 1.13;
-requires	'perl'		=> 5.008001;
-requires	'Pod::Simple'	=> 3.04;
+requires	'Scalar::Util'		=> 1.13;
+requires	'perl'			=> 5.008001;
+requires	'Pod::Simple'		=> 3.04;
+requires	'Pod::Simple::HTML'	=> 3.03;
 
 build_requires	'Test::More'	=> 0.42;
 
 license		'gpl';
 
 author		'Tels <nospam-abuse@bloodgate.com>';
-
-# Do not index these
-no_index	directory	=> 'extensions';
 
 # Generate the Makefile
 WriteAll;

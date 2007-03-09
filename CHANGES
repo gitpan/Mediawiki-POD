@@ -1,4 +1,14 @@
 
+2007-03-09 v0.03 Tels 11 tests
+  * rewrite the plugin code to use pipes instead of the commandline,
+    this makes it work with inputs of any size. Unfortunately, it
+    generates a hard dependency on PHP 4 (or PHP 5, depending). Ugh.
+  * we need to replace newlines inside <pre> sections with <br>
+  * hopefully fix the failing tests due to Pod::Simple::HTML missing
+  * create a subclass of Pod::Simple::HTML, this makes it possible
+    to create a table of contents (collapsable with JS)
+  * clean up some of the generated HTML of unwanted junk
+
 2007-03-03 v0.02 Tels 1 tests
   * replace newlines by spaces, otherwise sentences are stuck together
   * remove unwanted HTML (like the <head> section, <body>, comments etc.)

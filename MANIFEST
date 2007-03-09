@@ -10,6 +10,8 @@ inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
+lib/Mediawiki/POD.pm
+lib/Mediawiki/POD/HTML.pm
 LICENSE
 Makefile.PL
 MANIFEST
@@ -17,4 +19,8 @@ MANIFEST.SKIP
 META.yml			Module meta-data
 README
 SIGNATURE
-t/00_basic.t			basic graphcnv testsuite
+t/00_basic.t			basic podcnv tests
+t/01_pod.t
+t/02_html.t
+t/pod.t
+t/pod_cov.t

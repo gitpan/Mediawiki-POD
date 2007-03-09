@@ -2,20 +2,19 @@
 
 BEGIN
   {
-  $|++;						# output buffer off
-  unshift @INC, 'lib', 'extensions/lib';	# use local modules first
+  $|++;							# output buffer off
+  unshift @INC, 'lib', '../lib', 
+		'extensions/lib', '../extensions/lib';	# use local modules first
   }
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 use strict;
 # use warnings;			# be lean
-use Pod::Simple::HTML;
-
-use Encode qw/decode encode/;
+use Mediawiki::POD;
 
 # wrong number of options?
-if (@ARGV < 1 || @ARGV > 2)
+if (@ARGV > 0)
   {
   require Pod::Usage;		# do not load this unless nec.
   Pod::Usage::pod2usage(-2);	# print help and exit
@@ -28,31 +27,15 @@ eval
   local $SIG{ALRM} = sub { die "podcnv took more than $timeout seconds to parse POD\n" };
   alarm $timeout;
 
-  my $parser = Pod::Simple::HTML->new();
-
-  my ($html, $css);
-
-  $parser->output_string( \$html );
+  my $converter = Mediawiki::POD->new();
 
   binmode STDOUT, ':utf8' or die ("binmode STDOUT, ':utf8' failed: $!");
 
-  my ($txt, $encoding) = @ARGV;
-  $txt = decode ($encoding || 'utf8', $txt);
+  # slurp mode
+  local $/;
+  my $txt = <STDIN>;
 
-  $parser->parse_string_document( $txt );
-
-  # remove the unwanted HTML sections
-  $html =~ s/<head>(.|\n)*<\/head>//;
-  $html =~ s/<!--.*?-->//g;
-
-  $html =~ s/<\/?(html|body).*?>//g;
-
-  # clean up some crazy tags
-  # converting "<code lang='und' xml:lang='und'>" to "<code>
-  $html =~ s/<(pre|code|p)\s.*?>/<$1>/g;
-
-  # remove all new lines and tabs
-  $html =~ s/[\r\n\t]/ /g;
+  my $html = $converter->as_html( $txt);
 
   print $html;
 
@@ -90,15 +73,12 @@ podcnv - convert POD to HTML
 
 =head1 SYNOPSIS
 
-        perl -T podcnv POD [encoding]
-
-Examples:
-
-        perl -T podcnv '=head1 NAME' 'utf-8'
+	echo "=pod " | perl -T podcnv
 
 =head1 DESCRIPTION
 
-Turns a given POD (Plain Old Documentation) into HTML code.
+Turns a given POD (Plain Old Documentation) into HTML code,
+suitable for embedding it into Mediawiki.
 
 =head1 VERSIONS
 
@@ -117,6 +97,6 @@ See the LICENSE file for information.
 
 =head1 SEE ALSO
 
-L<http://bloodgate.com/wiki/>.
+L<http://bloodgate.com/wiki/>, L<http://www.mediawiki.org/>.
 
 =cut

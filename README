@@ -4,7 +4,7 @@ To better view this file, use:
 
 	perldoc README
 
-=head1 graphcnv
+=head1 podcnv
 
 Take POD text (Plain Old Documentation, Perl's way to write documentation)
 and render it as HTML inside a wiki page.
@@ -14,7 +14,8 @@ tags inside a wiki and would then be displayed as HTML for any visitor.
 
 The reason for this extensionis that multiple authors can edit one
 POD file at the same time, and enjoy the advantages of Mediawiki
-like revision history, diffs, undo function etc.
+like revision history, diffs, undo function, collapsable table
+of contents etc.
 
 =head1 Check the Signature
 
@@ -116,6 +117,10 @@ then run in the directory of this package:
 
 All tests should pass. If not, please notify me.
 
+=head2 Backup!
+
+B<Make a backup of your wiki! I repeat, MAKE A BACKUP! You have been warned!>
+
 =head2 Copy the files
 
 Then place the following two files from this mediawiki-pod.tar.gz file
@@ -133,9 +138,16 @@ You need the following files inside C<wiki/graph>:
 	podcnv
 	POD.php
 
-Make a backup of your wiki directory! I repeat, MAKE A BACKUP! You have been
-warned!
+Then either install this module:
 
+	sudo make install
+
+Or if you on a shared host, place all the files from the C<lib/>
+subdirectory under the extensions directory, too:
+
+	lib/Mediawiki/POD.pm	   =>  extensions/lib/Mediawiki/POD.pm
+	lib/Mediawiki/POD/HTML.pm  =>  extensions/lib/Mediawiki/POD/HTML.pm
+	
 Then include the following line at the bottom of your C<LocalSettings.php>,
 but before the "?>" line:
 
@@ -149,7 +161,7 @@ Change the permissions of graphcnv to be executable:
 
 Now you should be able to run manually (from your wiki directory):
 
-	extensions/pod/graphcnv '=head1 NAME'
+	echo "=head1 NAME" | extensions/podcnv
 
 and should print some HTML code on the console.
 
@@ -170,6 +182,12 @@ If you get an error messages like:
 	Error running podcnv.
 
 make sure that you followed the steps above correctly.
+
+=head1 BUGS
+
+Please report bugs, feature requests or POD errors to:
+
+	http://rt.cpan.org/
 
 =head1 AUTHOR
 
