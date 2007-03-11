@@ -1,6 +1,6 @@
 package Mediawiki::POD;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use strict;
 use Pod::Simple::HTML;
@@ -12,7 +12,27 @@ sub new
 
   my $self = bless {}, $class;
 
+  # some defaults
+  $self->{remove_newlines} = 1;
+  $self->{body_only} = 1;
+
   $self;
+  }
+
+sub remove_newlines
+  {
+  my $self = shift;
+
+  $self->{remove_newlines} = ( $_[0] ? 1 : 0 ) if @_ > 0;
+  $self->{remove_newlines};
+  }
+
+sub body_only
+  {
+  my $self = shift;
+
+  $self->{body_only} = ( $_[0] ? 1 : 0 ) if @_ > 0;
+  $self->{body_only};
   }
 
 sub as_html
@@ -27,11 +47,16 @@ sub as_html
 
   $parser->parse_string_document( $input );
 
-  # remove the unwanted HTML sections
-  $html =~ s/<head>(.|\n)*<\/head>//;
+  # remove comments
   $html =~ s/<!--(.|\n)*?-->//g;
 
-  $html =~ s/<\/?(html|body).*?>//g;
+  if ($self->{body_only})
+    {
+    # remove the unwanted HTML sections
+    $html =~ s/<head>(.|\n)*<\/head>//;
+
+    $html =~ s/<\/?(html|body).*?>//g;
+    }
 
   # clean up some crazy tags
   # converting "<code lang='und' xml:lang='und'>" to "<code>
@@ -43,9 +68,15 @@ sub as_html
   # make it readable again :)
   $html =~ s/\&#39;/'/g;
 
+  # remove empty paragraphs before a closing </div> (for instance for X keywords)
+  $html =~ s/<p><\/p>\n<\/div>/<\/div>/g;
+
+  # if the last item is a keyword, we need to add a closing </div>
+  $html =~ s/<p><\/p>\s*\z/<\/div>/;
+
   # convert newlines between <pre> tags to <br>
   # remove all new lines and tabs
-  $html = $self->_parse_output($html);
+  $html = $self->_parse_output($html) if $self->{remove_newlines};
 
   $html = $self->_generate_toc( $parser->get_headlines() ) . $html;
 
@@ -134,29 +165,38 @@ sub _generate_toc
 
     my $cur_level = $1;
     my $txt = $2;
+    my $link = $txt; $link =~ s/ /_/g; $link =~ s/"<>//g;
     #print STDERR "$headline $cur_level $level\n";
 
     # we enter a scope
     if ($cur_level > $level)
       {
-      push @cur_nr, 0;
-      $toc .= '<ul>';
+      my $levels_up = $cur_level - $level;
+      for (1..$levels_up)
+	{
+	push @cur_nr, 0;
+	$toc .= '<ul>';
+	}
       }
     elsif ($cur_level < $level)
       {
-      pop @cur_nr;
-      $toc .= '</ul>';
+      my $levels_down = $level - $cur_level;
+      for (1..$levels_down)
+        {
+        pop @cur_nr;
+        $toc .= '</ul>';
+        }
       }
     $cur_nr[-1]++;
     my $tnr = join ('.', @cur_nr);
-    $toc .= "<li class='toclevel-$cur_level'><a href=\"#$txt\"><span class='tocnumber'>$tnr</span> <span class='toctext'>$txt</span></a></li>";
+    $toc .= "<li class='toclevel-$cur_level'><a href=\"#$link\"><span class='tocnumber'>$tnr</span> <span class='toctext'>$txt</span></a></li>\n";
     $level = $cur_level;
     }
 
   $toc .= "</ul></td></tr></table>\n";
   $toc .= '<script type="text/javascript"> if (window.showTocToggle) { var tocShowText = "show"; var tocHideText = "hide"; showTocToggle(); } </script>';
 
-  $toc =~ s/[\n\r\t]/ /g;
+  $toc =~ s/[\n\r\t]/ /g if $self->{remove_newlines};
   $toc;
   }
 
@@ -203,6 +243,27 @@ an Mediawiki page.
 
 The returned HTML contains no newlines (as these would confuse the
 Mdiawiki parser) and a table of contents.
+
+=head2 remove_newlines()
+
+	$self->remove_newlines(0);	# output contains \n
+
+Set/get the flag that indicates that newlines should be removed from
+the output. For Mediawiki integration, the output must be stripped
+of newlines completely. Otherwise you might want to leave them in
+to generated more readable HTML.
+
+Default is true.
+
+=head2 body_only()
+
+	$self->body_only(0);		# output contains <head> etc.
+
+Set/get the flag that indicates that only the body part should be
+returned by L<as_html()>. The default means that the head section
+as well as the body tags are removed from the output.
+
+Default is true.
 
 =head1 LICENSE
 

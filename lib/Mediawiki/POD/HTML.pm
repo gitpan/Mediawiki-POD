@@ -4,53 +4,143 @@
 package Mediawiki::POD::HTML;
 
 use base qw/Pod::Simple::HTML/;
+use Graph::Easy;
+use Graph::Easy::Parser;
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use strict;
 
-my $in_headline = 0;
-my $in_x = 0;
+sub new
+  {
+  my $class = shift;
+
+  my $self = Pod::Simple::HTML->new(@_);
+
+  $self->{_mediawiki_pod_html} = {};
+  my $storage = $self->{_mediawiki_pod_html};
+
+  # we do not need an index, we will generate it ourselves
+  $self->index(0);
+
+  $storage->{in_headline} = 0;
+  $storage->{in_x} = 0;
+  $storage->{in_graph} = 0;
+  $storage->{headlines} = [];
+  $storage->{graph_id} = 0;
+
+  # we handle these, too:
+  $self->accept_targets('graph', 'GRAPH');
+
+  bless $self, $class;
+  }
+
+#############################################################################
+# overriden methods for parsing:
 
 sub _handle_element_start
   {
-  my($parser, $element_name, $attr) = @_;
+  my ($self, $element_name, $attr) = @_;
+
+  my $storage = $self->{_mediawiki_pod_html};
+
+  if ($element_name eq 'X' && $storage->{in_x} == 0)
+    {
+    $storage->{in_x} = 1;
+    $self->_my_output( '<div class="keywords">Keywords: &nbsp;' );
+    }
+  if ($element_name ne 'X' && $storage->{in_x} != 0)
+    {
+    # broken chain of X<> keywords
+    $self->_my_output( '</div>' );
+    $storage->{in_x} = 0;
+    }
+
+  # other items
+  if ($element_name eq 'for' && ($attr->{target} || '') eq 'graph')
+    {
+    $storage->{in_graph} = 1;
+    $storage->{cur_graph} = '';
+    return;
+    }
+  if ($element_name !~ /^Data/i)
+    {
+    $storage->{in_graph} = 0;
+    }
 
   if ($element_name =~ /^head/)
     {
-    $parser->{_html_headlines} = [] unless defined $parser->{_html_headlines};
-    push @{ $parser->{_html_headlines} }, $element_name . ' ';
-    $in_headline = 1;
+    push @{ $storage->{headlines} }, $element_name . ' ';
+    $storage->{in_headline} = 1;
     }
-  $parser->SUPER::_handle_element_start($element_name, $attr);
+
+  $self->SUPER::_handle_element_start($element_name, $attr);
   }
 
 sub _handle_element_end
   {
-  my($parser, $element_name) = @_;
+  my ($self, $element_name) = @_;
+
+  my $storage = $self->{_mediawiki_pod_html};
 
   if ($element_name =~ /^head/)
     {
-    $in_headline = 0;
+    $storage->{in_headline} = 0;
     }
-  $parser->SUPER::_handle_element_end($element_name);
+  if ($element_name =~ /Data/i && $storage->{in_graph})
+    {
+    my $parser = Graph::Easy::Parser->new();
+
+    my $graph = $parser->from_text($storage->{cur_graph});
+    
+    $graph->set_attribute('gid', $storage->{graph_id}++);
+
+    $self->_my_output( '<style type="text/css">' . $graph->css() . '</style>' );
+    $self->_my_output( $graph->as_html() );
+
+    $storage->{in_graph} = 0;
+    $storage->{cur_graph} = '';
+    return;
+    }
+
+  $self->SUPER::_handle_element_end($element_name);
   }
 
 sub _handle_text {
-  my($parser, $text) = @_;
+  my ($self, $text) = @_;
 
-  if ($in_headline != 0)
+  my $storage = $self->{_mediawiki_pod_html};
+  if ($storage->{in_headline})
     {
-    $parser->{_html_headlines}->[-1] .= $text;
+    $storage->{headlines}->[-1] .= $text;
     }
-  $parser->SUPER::_handle_text($text);
+  if ($storage->{in_graph})
+    {
+    $storage->{cur_graph} .= $text;
+    return;
+    }
+  if ($storage->{in_x})
+    {
+    $self->_my_output( "<span class='keyword'>$text</span>" );
+    return;
+    }
+
+  $self->SUPER::_handle_text($text);
   }
 
 sub get_headlines
   {
-  my $parser = shift;
+  my $self = shift;
 
-  $parser->{_html_headlines};
+  my $storage = $self->{_mediawiki_pod_html};
+  $storage->{headlines};
+  }
+
+sub _my_output
+  {
+  my $self = shift;
+
+  print {$self->{'output_fh'}} $_[0];
   }
 
 1;
@@ -61,7 +151,7 @@ __END__
 
 =head1 NAME
 
-Mediawiki::POD::HTML - a subclass to catch X<> and =head lines
+Mediawiki::POD::HTML - a subclass to catch X keywords and =head lines
 
 =head1 SYNOPSIS
 

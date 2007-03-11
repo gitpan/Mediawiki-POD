@@ -1,4 +1,14 @@
 
+2007-03-11 v0.04 Tels 17 tests
+  * require Graph::Easy
+  * convert "=begin graph .. =end graph" to HTML-graphs
+  * add some options to Mediawiki::POD
+    + remove_newlines(): default to true
+    + body_only(): default to true
+  * headlines with spaces in them are now correctly linked from the TOC
+  * the TOC nesting is now correct
+  * we handle X<keywords> and generate them with their own div and span
+
 2007-03-09 v0.03 Tels 11 tests
   * rewrite the plugin code to use pipes instead of the commandline,
     this makes it work with inputs of any size. Unfortunately, it

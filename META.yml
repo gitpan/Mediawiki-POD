@@ -15,8 +15,9 @@ no_index:
     - inc
     - t
 requires: 
+  Graph::Easy: 0.53
   Pod::Simple: 3.04
   Pod::Simple::HTML: 3.03
   Scalar::Util: 1.13
   perl: 5.8.1
-version: 0.03
+version: 0.04
