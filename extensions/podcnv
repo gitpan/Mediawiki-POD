@@ -14,11 +14,13 @@ use strict;
 use Mediawiki::POD;
 
 # wrong number of options?
-if (@ARGV > 0)
+if (@ARGV > 1 || ((@ARGV == 1) && ($ARGV[0] eq '--help')))
   {
   require Pod::Usage;		# do not load this unless nec.
   Pod::Usage::pod2usage(-2);	# print help and exit
   }
+
+my $remove_newlines = shift(@ARGV) ? 0 : 1;
 
 my $timeout = 10;
 
@@ -28,6 +30,7 @@ eval
   alarm $timeout;
 
   my $converter = Mediawiki::POD->new();
+  $converter->remove_newlines($remove_newlines);
 
   binmode STDOUT, ':utf8' or die ("binmode STDOUT, ':utf8' failed: $!");
 

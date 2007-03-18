@@ -1,4 +1,10 @@
 
+2007-03-18 v0.05 Tels 17 tests
+  * require Graph::Easy 0.54
+  * some fixes for "=begin graph .. =end graph" sections
+  * keywords are now linked to a search engine
+  * add keyword_search_url() to set the URL for the keyword links
+
 2007-03-11 v0.04 Tels 17 tests
   * require Graph::Easy
   * convert "=begin graph .. =end graph" to HTML-graphs

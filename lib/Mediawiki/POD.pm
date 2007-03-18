@@ -1,7 +1,8 @@
 package Mediawiki::POD;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
+use 5.008001;
 use strict;
 use Pod::Simple::HTML;
 use Mediawiki::POD::HTML;
@@ -194,7 +195,9 @@ sub _generate_toc
     }
 
   $toc .= "</ul></td></tr></table>\n";
-  $toc .= '<script type="text/javascript"> if (window.showTocToggle) { var tocShowText = "show"; var tocHideText = "hide"; showTocToggle(); } </script>';
+  $toc .= '<script type="text/javascript">' . "\n" .
+	  'if (window.showTocToggle) {var tocShowText="show";var tocHideText="hide";showTocToggle();}' .
+	  "\n</script>\n";
 
   $toc =~ s/[\n\r\t]/ /g if $self->{remove_newlines};
   $toc;
