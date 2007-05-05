@@ -8,7 +8,7 @@ use base qw/Pod::Simple::HTML/;
 use Graph::Easy;
 use Graph::Easy::Parser;
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 use strict;
 
@@ -30,12 +30,43 @@ sub new
   $storage->{headlines} = [];
   $storage->{graph_id} = 0;
 
+  # the text common to all graphs
+  $storage->{graph_common} = '';
+  # the text of the current graph
+  $storage->{cur_graph} = '';
+
   $storage->{search} = 'http://cpan.uwinnipeg.ca/search?query=##KEYWORD##';
+  $storage->{search_space} = undef;
 
   # we handle these, too:
-  $self->accept_targets('graph', 'GRAPH');
+  $self->accept_targets('graph', 'graph-common');
 
   bless $self, $class;
+  }
+
+sub _convert_graph
+  {
+  # when we detect the end of a "graph" section, we create CSS+HTML from it:
+  my ($self) = @_;
+
+  my $storage = $self->{_mediawiki_pod_html};
+
+#  print "# Converting to graph:\n";
+#  print "# '$storage->{graph_common}'\n";
+#  print "# '$storage->{cur_graph}'\n";
+
+  my $parser = Graph::Easy::Parser->new();
+
+  my $graph = $parser->from_text( 
+	$storage->{graph_common} . "\n" . $storage->{cur_graph} );
+    
+  $graph->set_attribute('gid', $storage->{graph_id}++);
+
+  $self->_my_output( '<style type="text/css">' . $graph->css() . '</style>' );
+  $self->_my_output( $graph->as_html() );
+
+  $storage->{in_graph} = 0;
+  $storage->{cur_graph} = '';
   }
 
 #############################################################################
@@ -45,7 +76,7 @@ sub _handle_element_start
   {
   my ($self, $element_name, $attr) = @_;
 
-  #print STDERR "start '$element_name'\n";
+#  print STDERR "start '$element_name'\n";
 
   my $storage = $self->{_mediawiki_pod_html};
 
@@ -61,25 +92,28 @@ sub _handle_element_start
     $storage->{in_x} = 0;
     }
 
+  if ($storage->{in_graph_common} && $element_name !~ /^Data/i)
+    {
+    $storage->{in_graph_common} = 0;
+    }
+
   if ($storage->{in_graph} && $element_name !~ /^Data/i)
     {
-    my $parser = Graph::Easy::Parser->new();
-
-    my $graph = $parser->from_text($storage->{cur_graph});
-    
-    $graph->set_attribute('gid', $storage->{graph_id}++);
-
-    $self->_my_output( '<style type="text/css">' . $graph->css() . '</style>' );
-    $self->_my_output( $graph->as_html() );
-
-    $storage->{in_graph} = 0;
-    $storage->{cur_graph} = '';
+    $self->_convert_graph();
     }
-  # other items
+  # =for graph and =begin graph sections
   if ($element_name eq 'for' && ($attr->{target} || '') eq 'graph')
     {
     $storage->{in_graph} = 1;
     $storage->{cur_graph} = '';
+    return;
+    }
+
+  # =for graph-common and =begin graph sections
+  if ($element_name eq 'for' && ($attr->{target} || '') eq 'graph-common')
+    {
+    $storage->{in_graph_common} = 1;
+    $storage->{graph_common} = '';
     return;
     }
 
@@ -96,13 +130,17 @@ sub _handle_element_end
   {
   my ($self, $element_name) = @_;
 
-  #print STDERR "end '$element_name'\n";
+#  print STDERR "end '$element_name'\n";
 
   my $storage = $self->{_mediawiki_pod_html};
 
   if ($element_name =~ /^head/)
     {
     $storage->{in_headline} = 0;
+    }
+  if ($element_name eq 'Document')
+    {
+    $self->_convert_graph() if $storage->{in_graph};
     }
 
   $self->SUPER::_handle_element_end($element_name);
@@ -111,7 +149,7 @@ sub _handle_element_end
 sub _handle_text {
   my ($self, $text) = @_;
 
-  #print STDERR "text '$text'\n";
+#  print STDERR "text '$text'\n";
 
   my $storage = $self->{_mediawiki_pod_html};
   if ($storage->{in_headline})
@@ -123,6 +161,11 @@ sub _handle_text {
     $storage->{cur_graph} .= $text;
     return;
     }
+  if ($storage->{in_graph_common})
+    {
+    $storage->{graph_common} .= $text;
+    return;
+    }
   if ($storage->{in_x})
     {
     my $url = $storage->{search};
@@ -132,11 +175,15 @@ sub _handle_text {
     if ($url =~ /##KEYWORD##/)
       {
       $url =~ s/##KEYWORD##/$t/g;
+      $url =~ s/ /_/g unless defined $storage->{search_space};
       }
     else
       {
       $url .= $t;
+      $url =~ s/ /+/g unless defined $storage->{search_space};
       }
+    # make spaces safe
+    $url =~ s/ /$storage->{search_space}/g if defined $storage->{search_space};
     $self->_my_output( "<a class='keyword' href='$url'>$text</a>" );
     return;
     }
@@ -158,7 +205,11 @@ sub keyword_search_url
 
   my $storage = $self->{_mediawiki_pod_html};
   $storage->{search} = $_[0] if defined $_[0];
-  $storage->{search};
+  # can be undef, too
+  $storage->{search_space} = $_[1] if defined @_ == 2;
+ 
+  wantarray ? 
+    ($storage->{search}, $storage->{search_space}) : $storage->{search};
   }
 
 sub _my_output
@@ -194,6 +245,45 @@ This subclass of L<Pod::Simple::HTML> catches C<=head> directives,
 and then allows you to assemble a TOC (table of contents) from
 the captured headlines.
 
+In addition, it supports C<graph-common> and C<graph> subsections, these
+will be turned into HTML graphs.
+
+=head1 GRAPH SUPPORT
+
+Mediawiki::POD::HTML allows you to write graphs (nodes connected with edges)
+in L<Graph::Easy> or L<http://www.graphviz.org|Graphviz> format and turns
+these portions into HTML "graphics".
+
+The following represents two graphs:
+
+	=for graph [ Single ] --> [ Line ] --> [ Definition ]
+
+	=begin graph
+
+	node { fill: silver; }
+	[ Mutli ] --> [ Line ]
+
+	=end graph
+
+In addition, a C<graph-common> section can be used to set a common text
+for all following graphs. Each C<graph-common> section resets the common
+text section:
+
+	=for graph-common node { fill: red; }
+
+	=for graph [ Red ]
+
+	=for graph [ Red too ]
+
+	=for graph-common node { fill: blue; }
+
+	=for graph [ Blue ]
+
+	=for graph [ Blue too ]
+
+The attribute C<output> for graphs is not yet used, eventually it should
+result in different output formats like SVG, or PNG rendered via dot.
+
 =head1 METHODS
 
 =head2 get_headlines()
@@ -201,6 +291,12 @@ the captured headlines.
 Return all the captured headlines as an ARRAY ref.
 
 =head2 keyword_search_url()
+
+	# Set external search engine to search for "Foo+Bar"
+	$parser->keyword_search_url('http://search.cpan.org/perldoc?');
+
+	# Generate URLs like "Foo_Bar", perfect for relative wiki links:
+	$parser->keyword_search_url('', '_');
 
 Get/set the URL that is used to link keywords defined with C<< X&lt;&gt; >>
 to a search engine. 
@@ -212,13 +308,17 @@ The default search URL is:
 
   	http://cpan.uwinnipeg.ca/search?query=##KEYWORD##
 
-Examples:
+Optionally set the character that replaces a space in generated URLs.
+The default space replacement character is undef, this means the
+character is dependend on the search URL:
 
-	# External search engine
-	$parser->keyword_search_url('http://search.cpan.org/perldoc?');
+=over 2
 
-	# will generate URLs like "example", perfect for relative links
-	$parser->keyword_search_url('');
+=item * For URLS with ##KEYWORD##, it is '+'
+
+=item * For URLS without a ##KEYWORD##, it is '_'
+
+=back
 
 =head1 LICENSE
 
@@ -229,10 +329,10 @@ See the LICENSE file for information.
 
 =head1 AUTHOR
 
-(c) by Tels bloodgate.com 2007
+(c) Copyright by Tels L<http://bloodgate.com/wiki> 2007
 
 =head1 SEE ALSO
 
-L<http://bloodgate.com/wiki/>.
+L<http://bloodgate.com/wiki/POD>, L<Graph::Easy>.
 
 =cut

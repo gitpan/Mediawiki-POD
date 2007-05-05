@@ -123,7 +123,7 @@ B<Make a backup of your wiki! I repeat, MAKE A BACKUP! You have been warned!>
 
 =head2 Copy the files
 
-Then place the following two files from this mediawiki-pod.tar.gz file
+Then place the following two files from this Mediawiki-POD.tar.gz file
 so that into the subdirectory C<extensions> of your wiki installation
 like this:
 
@@ -133,7 +133,7 @@ like this:
 			\ - extensions		<-- here
 			\ - math		etc
 
-You need the following files inside C<wiki/graph>:
+You need the following files inside C<wiki/extensions>:
 
 	podcnv
 	POD.php
@@ -155,7 +155,7 @@ but before the "?>" line:
 
 =head2 Manual test
 
-Change the permissions of graphcnv to be executable:
+Change the permissions of C<podcnv> to be executable:
 
 	chmod a+x extensions/podcnv
 

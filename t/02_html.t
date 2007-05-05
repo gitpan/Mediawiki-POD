@@ -5,7 +5,7 @@ use Test::More;
 
 BEGIN
   {
-  plan tests => 3;
+  plan tests => 5;
   chdir 't' if -d 't';
 
   use lib '../lib';
@@ -22,4 +22,8 @@ my $pod = Mediawiki::POD::HTML->new();
 
 is (ref($pod), 'Mediawiki::POD::HTML');
 
+my ($url, $space) = $pod->keyword_search_url();
+
+like ($url, qr/##KEYWORD##/, 'Some default keyword search');
+is ($space, undef, 'Space will be either "+" or "_"');
 

@@ -2,12 +2,12 @@
 
 BEGIN
   {
-  $|++;							# output buffer off
+  $|++;							# output buffering off
   unshift @INC, 'lib', '../lib', 
 		'extensions/lib', '../extensions/lib';	# use local modules first
   }
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 use strict;
 # use warnings;			# be lean
@@ -32,15 +32,11 @@ eval
   my $converter = Mediawiki::POD->new();
   $converter->remove_newlines($remove_newlines);
 
-  binmode STDOUT, ':utf8' or die ("binmode STDOUT, ':utf8' failed: $!");
-
   # slurp mode
   local $/;
   my $txt = <STDIN>;
 
-  my $html = $converter->as_html( $txt);
-
-  print $html;
+  print $converter->as_html( $txt);
 
   # disable alarm
   alarm 0;
@@ -82,6 +78,9 @@ podcnv - convert POD to HTML
 
 Turns a given POD (Plain Old Documentation) into HTML code,
 suitable for embedding it into Mediawiki.
+
+Will also handle C<graph> and C<graph-common> sections and
+turn these into inline HTML "grafics".
 
 =head1 VERSIONS
 

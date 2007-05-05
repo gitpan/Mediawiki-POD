@@ -1,4 +1,16 @@
 
+2007-05-05 v0.06 Tels 29 tests
+  * require Graph::Easy 0.55
+  * remove tabs and form-feeds from output
+  * fixlinks in the form of L</foo> to not contain spurious quotes
+  * prevent an endless loop in the crude HTML parsing to remove newlines
+  * add support for "graph-common" sections
+  * add second parameter (space replacement char) to keyword_search_url()
+  * "graph" sections at the very end were silently dropped
+  * Fix the failing basic tests. They were failing since the test used another
+    Perl than the one that the tested script had, thus not finding Graph::Easy
+    from the temp. test setup - thanx David Cantrell for figuring this out!
+
 2007-03-18 v0.05 Tels 17 tests
   * require Graph::Easy 0.54
   * some fixes for "=begin graph .. =end graph" sections

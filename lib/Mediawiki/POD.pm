@@ -1,8 +1,7 @@
 package Mediawiki::POD;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
-use 5.008001;
 use strict;
 use Pod::Simple::HTML;
 use Mediawiki::POD::HTML;
@@ -48,6 +47,9 @@ sub as_html
 
   $parser->parse_string_document( $input );
 
+  # remove form-feeds and tabs
+  $html =~ s/[\f\t]+//g;
+
   # remove comments
   $html =~ s/<!--(.|\n)*?-->//g;
 
@@ -68,12 +70,16 @@ sub as_html
 
   # make it readable again :)
   $html =~ s/\&#39;/'/g;
+  $html =~ s/\&#34;/"/g;
 
   # remove empty paragraphs before a closing </div> (for instance for X keywords)
   $html =~ s/<p><\/p>\n<\/div>/<\/div>/g;
 
   # if the last item is a keyword, we need to add a closing </div>
   $html =~ s/<p><\/p>\s*\z/<\/div>/;
+
+  # make '>"foo"</a>' to '>foo</a>'
+  $html =~ s/class="podlinkpod"\s*>"(.*?)"<\/a>/class="podlinkpod">$1<\/a>/g;
 
   # convert newlines between <pre> tags to <br>
   # remove all new lines and tabs
@@ -102,11 +108,13 @@ sub _parse_output
 
   my $qr_tag = qr/^(<\w+(.|\n)*?>)/;
   my $qr_end_tag = qr/^(<\/\w+>)/;
-  my $qr_else = qr/^((?:.|\n)*?)(<|\z)/;
+  my $qr_else = qr/^((?:.|\n)+?)(<|\z)/;
 
+  my $last_len = 1;
   my $output = '';
   while (length($input) > 0)
     {
+    $last_len = length($input);
     # math the start of the input, and remove the matching part
     if ($input =~ $qr_tag)
       {
@@ -225,6 +233,49 @@ Mediawiki::POD - convert POD to HTML suitable for a MediaWiki wiki
 
 Turns a given POD (Plain Old Documentation) into HTML code.
 
+This subclass of L<Pod::Simple::HTML> catches C<=head> directives,
+and then allows you to assemble a TOC (table of contents) from
+the captured headlines.
+
+In addition, it supports C<graph-common> and C<graph> subsections, these
+will be turned into HTML graphs.
+
+=head1 GRAPH SUPPORT
+
+C<Mediawiki::POD> allows you to write graphs (nodes connected with edges)
+in L<Graph::Easy> or L<http://www.graphviz.org|Graphviz> format inside
+the POD itself, and turns these portions into HTML "graphics".
+
+The following represents two graphs:
+
+	=for graph [ Single ] --> [ Line ] --> [ Definition ]
+
+	=begin graph
+
+	node { fill: silver; }
+	[ Mutli ] --> [ Line ]
+
+	=end graph
+
+In addition, a C<graph-common> section can be used to set a common text
+for all following graphs. Each C<graph-common> section resets the common
+text section:
+
+	=for graph-common node { fill: red; }
+
+	=for graph [ Red ]
+
+	=for graph [ Red too ]
+
+	=for graph-common node { fill: blue; }
+
+	=for graph [ Blue ]
+
+	=for graph [ Blue too ]
+
+The attribute C<output> for graphs is not yet used, eventually it should
+result in different output formats like SVG, or PNG rendered via dot.
+
 =head1 VERSIONS
 
 Please see the CHANGES file for a complete version history.
@@ -277,7 +328,7 @@ See the LICENSE file for information.
 
 =head1 AUTHOR
 
-(c) by Tels bloodgate.com 2007
+(c) Copyright by Tels L<http://bloodgate.com/wiki> 2007
 
 =head1 SEE ALSO
 

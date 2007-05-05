@@ -24,5 +24,8 @@ SIGNATURE
 t/00_basic.t			basic podcnv tests
 t/01_pod.t
 t/02_html.t
+t/03_graphs.t
 t/pod.t
+t/pod/common.pod
+t/pod/split.pod
 t/pod_cov.t
